@@ -1,0 +1,17 @@
+{
+  "name": "chaibackendv1",
+  "version": "1.0.0",
+  "description": "this is project of youtube like app",
+  "keywords": [
+    "javascript",
+    "chai",
+    "backend"
+  ],
+  "license": "ISC",
+  "author": "wajidkhan",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
