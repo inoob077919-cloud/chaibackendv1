@@ -1,18 +1,20 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
-import connectDB from './db/index.js';
-import express from "express";
-const app = express();
-import morgan from "morgan";
-// if (process.env.NODE_ENV === 'development') {
-app.use(morgan('dev')); //use for Method / URL / Statuscode / TIME / Size //GET /api/v1/tours/5 404 5.297 ms - 40
-// }
-connectDB();
+import connectDB from "./db/index.js";
+import app from "./app.js";
+const port = process.env.PORT || 8000;
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server is now ready to Run with port ${process.env.PORT}`);
+connectDB()
+    .then(() => {
+        app.listen(port, () => {
+            console.log(`Server is running at port: ${port}`);
+        })
+    })
+    .catch((error) => {
+        console.log(`Database connection failed !`);
 
-});
+    });
+
 
 
 /*
