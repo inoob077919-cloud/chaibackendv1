@@ -1,5 +1,7 @@
 const asyncHandler = (requestHandler) => {
-    (req, res, next) => {
+    return (req, res, next) => {
+        /*you must return this hard function other wise 
+        TypeError: argument handler must be a function */
         Promise
             .resolve(requestHandler(req, res, next))
             .catch((error) => next(error))
