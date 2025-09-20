@@ -53,9 +53,9 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre("save", function (next) { //this is middleware for before save password encrypt
+userSchema.pre("save", async function (next) { //this is middleware for before save password encrypt
   if (!this.isModified("password")) return next(); //only new password only work this below code
-  this.password = bcrypt.hash(this.password, 10); //10 round hash but something wrong bcz everytime encrypt everytime so use condition when new password 
+  this.password = await bcrypt.hash(this.password, 10); //10 round hash but something wrong bcz everytime encrypt everytime so use condition when new password 
   next();
 });
 
@@ -94,4 +94,4 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 }
-export const User = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);
