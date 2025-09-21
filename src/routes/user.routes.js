@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, getAllUsers, userLogin, userLogout } from "./../controllers/users.controller.js"  //now create controllers folder and userControoler
+import { registerUser, getAllUsers, userLogin, userLogout, refreshToken } from "./../controllers/users.controller.js"  //now create controllers folder and userControoler
 import { upload } from "./../middlewares/multer.middleware.js";
 import jwtverify from '../middlewares/auth.middleware.js';
 const userRoutes = new Router();
@@ -12,6 +12,7 @@ userRoutes.post('/register', upload.fields([
 ]), registerUser);
 userRoutes.post('/login', userLogin)
 userRoutes.post('/logout', jwtverify, userLogout)
+userRoutes.post('/refresh-token', refreshToken)
 // routes.post('/', SessionController.store);
 // routes.put('/', SessionController.store);
 // routes.delete('/', SessionController.store);
