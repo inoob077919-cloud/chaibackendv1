@@ -1,6 +1,7 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { v2 as cloudinary } from 'cloudinary';
 import fs from "fs"; //filesystem in node builtin
-
 
 // Configuration
 cloudinary.config({
@@ -12,9 +13,6 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (localFilePath) => {
   try {
-
-
-
     //first check localfilepath exist
     if (!localFilePath) return "localFile Path Doesn't Exist";
     //Upload the file on cloudinary
