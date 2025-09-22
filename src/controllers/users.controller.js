@@ -136,7 +136,7 @@ const userLogin = asyncHandler(async (req, res) => {
    */
   const { email, username, password } = req.body;
   //email and username is required
-  if (!email || !username) {
+  if (!(email || username)) {
     throw new ApiError(400, "username and email are required")
   }
 
@@ -171,9 +171,6 @@ const userLogin = asyncHandler(async (req, res) => {
       },
         "User loggedIn successfully")
     )
-
-
-
 });
 const userLogout = asyncHandler(async (req, res) => {
   //before we first create middleware for helping get user data through jwt.verify decode and easily access _id
@@ -197,11 +194,16 @@ const userLogout = asyncHandler(async (req, res) => {
 });
 
 //RefreshToken generate
-const refreshToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+const newRefreshToken = asyncHandler(async (req, res) => {
+
+
+  // console.log(req.cookies);
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorized Refresh Token");
+    throw new ApiError(401, "Unauthorized Refresh Token ");
   }
+  // res.send("New Refresh Token");
   try {
     //verify token
     const decodeToken = await jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
@@ -211,8 +213,9 @@ const refreshToken = asyncHandler(async (req, res) => {
     //get UserId decode
     const getUserByIdData = await User.findById(decodeToken._id);
     if (!getUserByIdData) {
-      throw new ApiError(401, "Unauthorizad Token Refresh")
+      throw new ApiError(404, "User not found")
     }
+
     //compare both token 
     if (incomingRefreshToken != getUserByIdData?.refreshToken) {
       throw new ApiError(401, "Token Refresh Expired or Used")
@@ -233,20 +236,59 @@ const refreshToken = asyncHandler(async (req, res) => {
           accessToken, refreshToken: newRefreshToken
         },
           "Access Token Refreshedd")
-      )
+      );
   } catch (error) {
-    throw new ApiError(401, "Some thing went wront in token check")
+    throw new ApiError(401, "Something went wront in token check")
 
   }
-
-
 });
+//Change Password
+const changeUserPassword = asyncHandler(
+  async (req, res) => {
+    //incoming fields data oldPassword , newPassword
+    const { oldPassword, newPassword } = req.body;
+    //get userdata by Id
 
+    if (!req.user) {
+      throw new ApiError(400, "User not loggedIn please loggedIn First");
+    }
+    const user = await User.findById(req.user?._id);
+    //compare oldPassword to db table
 
+    const passwordCorrect = await user.isPasswordCorrect(oldPassword); //if missing await its promise <awaiting>
+
+    if (!passwordCorrect) {
+      throw new ApiError(400, "Incorrect old password");
+    }
+
+    //update a password
+    user.password = newPassword;
+    await user.save({ validateBefore: false });
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(201, {}, "User Password Change successfully")
+      )
+  }
+);
+
+const getCurrentUser = asyncHandler(
+  async (req, res) => {
+    const user = await User.findById(req.user?._id)
+      .select("-password -refreshToken");
+    return res.status(200)
+      .json(
+        new ApiResponse(202, user, "Current User LoggedIn")
+      )
+  }
+);
 export {
   registerUser,
   getAllUsers,
   userLogin,
   userLogout,
-  refreshToken
+  newRefreshToken,
+  changeUserPassword,
+  getCurrentUser
 }
