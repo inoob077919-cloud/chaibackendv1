@@ -283,6 +283,84 @@ const getCurrentUser = asyncHandler(
       )
   }
 );
+
+const updateAccountDetails = asyncHandler(
+  async (req, res) => {
+    const { email, fullName } = req.body || {}; //username is not update its one time create for channel its never change
+    //no req.body check becz we use validateFeild middleware in route
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,              // get ID from auth middleware
+      { $set: { email, fullName: fullName } },       // only update given fields
+      { new: true }
+    ).select("-password -refreshToken");
+    if (!user) {
+      throw new ApiError(400, "Data is not updated please check")
+    }
+    res.status(200)
+      .json(
+        new ApiResponse(201, user, "Account Updated successfully")
+      )
+  }
+);
+
+const updateAvatorFile = asyncHandler(async (req, res) => {
+  // multer.single("avator") → file is in req.file
+  const localPathAvator = req.file?.path;
+
+  if (!localPathAvator) {
+    throw new ApiError(400, "Avator Path is invalid");
+  }
+
+  // upload to cloudinary (example)
+  const uploadedAvator = await uploadOnCloudinary(localPathAvator);
+
+  if (!uploadedAvator?.url) {
+    throw new ApiError(500, "Avator upload failed");
+  }
+
+  // update user document
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { avatar: uploadedAvator.url },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  res.status(200).json({
+    success: true,
+    message: "Avator updated successfully",
+    user: updatedUser,
+  });
+});
+
+const updateCoverImage = asyncHandler(async (req, res) => {
+  // multer.single("coverImage") → file is in req.file
+  const localPathCoverImage = req.file?.path;
+
+  if (!localPathCoverImage) {
+    throw new ApiError(400, "Cover Image Path is invalid");
+  }
+
+  // upload to cloudinary (example)
+  const uploadedCoverImage = await uploadOnCloudinary(localPathCoverImage);
+
+  if (!uploadedCoverImage?.url) {
+    throw new ApiError(500, "Avator upload failed");
+  }
+
+  // update user document
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { coverImage: uploadedCoverImage.url },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  res.status(200).json({
+    success: true,
+    message: "CoverImage updated successfully",
+    user: updatedUser,
+  });
+});
+
 export {
   registerUser,
   getAllUsers,
@@ -290,5 +368,8 @@ export {
   userLogout,
   newRefreshToken,
   changeUserPassword,
-  getCurrentUser
+  getCurrentUser,
+  updateAccountDetails,
+  updateAvatorFile,
+  updateCoverImage
 }
