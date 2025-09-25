@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "./../utils/cloudinary.js";
 import ApiResponse from "./../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from 'mongoose';
 
 
 
@@ -176,9 +177,8 @@ const userLogout = asyncHandler(async (req, res) => {
   //before we first create middleware for helping get user data through jwt.verify decode and easily access _id
 
   await User.findByIdAndUpdate(req.user._id,
-
-    { $set: { refreshToken: undefined } }, // Fields to update
-    { new: true } // Options
+    { $unset: { refreshToken: 1 } }, // removes the field
+    { new: true }
 
   )
   const options = {
@@ -415,7 +415,7 @@ const getUserChannalProfile = asyncHandler(
           },
           isSubscribed: {
             $cond: {
-              if: { $in: [req.user?._id, "subscribers.subscriber"] },
+              if: { $in: [req.user?._id, "$subscribers.subscriber"] },
               then: true,
               else: false
             }
@@ -426,8 +426,8 @@ const getUserChannalProfile = asyncHandler(
       ,
       {
         $project: {
-          username: 1, email: 1, fullName: 1,
-          subscriberCount: 1, channalSubscribedCountTo: 1
+          username: 1, email: 1, fullName: 1, avator: 1, coverImage: 1,
+          subscriberCount: 1, channalSubscribedCountTo: 1, isSubscribed: 1
         }
       }
 
@@ -446,6 +446,69 @@ const getUserChannalProfile = asyncHandler(
 
   }
 );
+
+const getWatchUserHistory = asyncHandler(async (req, res) => {
+  /**
+   * 1: match record in user id get this id in req.user._id
+   * but in aggreate u can't use direct this 
+   * 2: match:{
+   * _id: new mongoose.Types.ObjectId(req.user._id)
+   * 3: lookup to video foreign key 
+   * }
+   * subpipline
+   */
+  if (!req.user?._id) {
+    throw new ApiError(400, "No user loggedIn please loggedIn first")
+  }
+  const WatchHistory = await User.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(req.user._id) },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline:
+          [
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                ///anotherr stage use not get all fields in users  subpipline
+                pipeline: [
+                  {
+                    $project: {
+                      fullName: 1,
+                      avator: 1,
+                      email: 1
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              $addFields: {
+                owner: {
+                  $first: "$owner"
+                }
+              }
+            }
+          ],
+      }
+    }
+
+  ]);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, WatchHistory, "get watch history successfully")
+    )
+});
 export {
   registerUser,
   getAllUsers,
@@ -457,5 +520,6 @@ export {
   updateAccountDetails,
   updateAvatorFile,
   updateCoverImage,
-  getUserChannalProfile
+  getUserChannalProfile,
+  getWatchUserHistory
 }

@@ -10,7 +10,8 @@ import {
   updateAccountDetails,
   updateAvatorFile,
   updateCoverImage,
-  getUserChannalProfile
+  getUserChannalProfile,
+  getWatchUserHistory
 } from "./../controllers/users.controller.js"  //now create controllers folder and userControoler
 import { upload } from "./../middlewares/multer.middleware.js";
 import jwtverify from '../middlewares/auth.middleware.js';
@@ -31,7 +32,8 @@ userRoutes.post('/current-user', jwtverify, getCurrentUser);
 userRoutes.post('/profile-update', validateFields(["email", "fullName"]), jwtverify, updateAccountDetails);
 userRoutes.post('/avator-update', jwtverify, upload.single("avator"), updateAvatorFile);
 userRoutes.post('/coverimage-update', jwtverify, upload.single("coverImage"), updateCoverImage);
-userRoutes.get('/channal-profile/:username', getUserChannalProfile)
+userRoutes.get('/channal-profile/:username', getUserChannalProfile);
+userRoutes.post('/watch-history', jwtverify, getWatchUserHistory)
 // routes.post('/', SessionController.store);
 // routes.put('/', SessionController.store);
 // routes.delete('/', SessionController.store);
