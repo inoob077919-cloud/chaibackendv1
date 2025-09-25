@@ -9,7 +9,8 @@ import {
   getCurrentUser,
   updateAccountDetails,
   updateAvatorFile,
-  updateCoverImage
+  updateCoverImage,
+  getUserChannalProfile
 } from "./../controllers/users.controller.js"  //now create controllers folder and userControoler
 import { upload } from "./../middlewares/multer.middleware.js";
 import jwtverify from '../middlewares/auth.middleware.js';
@@ -29,7 +30,8 @@ userRoutes.post('/change-password', jwtverify, changeUserPassword);
 userRoutes.post('/current-user', jwtverify, getCurrentUser);
 userRoutes.post('/profile-update', validateFields(["email", "fullName"]), jwtverify, updateAccountDetails);
 userRoutes.post('/avator-update', jwtverify, upload.single("avator"), updateAvatorFile);
-userRoutes.post('/coverimage-update', jwtverify, upload.single("coverImage"), updateCoverImage)
+userRoutes.post('/coverimage-update', jwtverify, upload.single("coverImage"), updateCoverImage);
+userRoutes.get('/channal-profile/:username', getUserChannalProfile)
 // routes.post('/', SessionController.store);
 // routes.put('/', SessionController.store);
 // routes.delete('/', SessionController.store);

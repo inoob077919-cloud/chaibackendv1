@@ -361,6 +361,78 @@ const updateCoverImage = asyncHandler(async (req, res) => {
   });
 });
 
+const getUserChannalProfile = asyncHandler(
+  async (req, res) => {
+    //get first username of user bcz channel name must in username so if click in channel url ?username=askdjashdkjas
+    //like this so we get username in parameters
+    const username = req.params?.username;
+    //get user details 
+
+    /**
+     * User.findOne(username) but we cannot use this query because we need a user data 
+     * username,email,fullName,subscriber,channal also these three fields get in users collection
+     * but subscriber and channal in subscriptions collection.
+     * how to count subscriber and channal in user .
+     * we get proper data and relize send data.
+     * thats area use aggregate piplines
+     * get user collection match username
+     **/
+    const pipeline = [
+      {
+        $match: {  //this match Filters  stage 
+          username: username
+        }
+      },
+      {
+        $lookup: {
+          from: "subscriptions",  //put collection u got a data
+          localField: "_id", //this collection mean users
+          foreignField: "channal",
+          as: "subscribers"
+        }
+      },
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "_id",
+          foreignField: "subscriber",
+          as: "subscribedTo"
+        }
+      },
+      {
+        $addFields: {
+          subscriberCount: {
+            $size: "$subscribers"
+          },
+          channalSubscribedCountTo: {
+            $size: "$subscribedTo"
+          }
+
+        }
+      }
+      ,
+      {
+        $project: {
+          username: 1, email: 1, fullName: 1,
+          subscriberCount: 1, channalSubscribedCountTo: 1
+        }
+      }
+
+    ];
+
+    const channal = await User.aggregate(pipeline);
+    //check records empty or not 
+    if (!channal?.length) {
+      throw new ApiError(404, "Channal does not exist !");
+    }
+    res.status(200)
+      .json(
+        //aggregate return in array so we send object data
+        new ApiResponse(200, channal[0], "channal data get successfully")
+      );
+
+  }
+);
 export {
   registerUser,
   getAllUsers,
@@ -371,5 +443,6 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateAvatorFile,
-  updateCoverImage
+  updateCoverImage,
+  getUserChannalProfile
 }
