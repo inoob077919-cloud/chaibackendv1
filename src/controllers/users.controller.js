@@ -376,6 +376,12 @@ const getUserChannalProfile = asyncHandler(
      * we get proper data and relize send data.
      * thats area use aggregate piplines
      * get user collection match username
+     * 1: Match get record username
+     * 2: join use stage $lookup
+     * 3: $addFields for send extra data we want $size mean count this fields $ sign field present
+     * 4:  $project stage show return data you add there
+     * 5: isPublished True or False for subcribe button
+     * 6: $cond in addFields
      **/
     const pipeline = [
       {
@@ -406,6 +412,13 @@ const getUserChannalProfile = asyncHandler(
           },
           channalSubscribedCountTo: {
             $size: "$subscribedTo"
+          },
+          isSubscribed: {
+            $cond: {
+              if: { $in: [req.user?._id, "subscribers.subscriber"] },
+              then: true,
+              else: false
+            }
           }
 
         }
