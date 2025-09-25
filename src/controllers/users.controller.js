@@ -428,7 +428,7 @@ const getUserChannalProfile = asyncHandler(
     res.status(200)
       .json(
         //aggregate return in array so we send object data
-        new ApiResponse(200, channal[0], "channal data get successfully")
+        new ApiResponse(200, channal[0], "channal data fetch  successfully")
       );
 
   }
